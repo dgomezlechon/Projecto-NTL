@@ -122,7 +122,9 @@ def col_price_change(prices_list):
         
         
         
-def get_news_link(ticker,date):   
+def get_news_link(ticker,date):
+
+    '''Esta función saca la noticia más relevante para la búsqueda de una acción en un día concreto'''   
         
     URL="https://www.google.com/webhp?hl=es&sa=X&ved=0ahUKEwiizPmUiJb3AhWVSfEDHcGwBmgQPAgI"
     driver=webdriver.Chrome(PATH, options=opciones)
@@ -202,3 +204,9 @@ def get_news_link(ticker,date):
     link=busqueda.get_attribute('href')
 
     return link
+
+def make_clickable(val):
+
+    '''Esta función convierte los links en los Dataframes events en clickables'''
+
+    return f'<a target="_blank" href="{val}">{val}</a>'
