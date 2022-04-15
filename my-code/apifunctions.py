@@ -1,6 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+import pandas as pd
+import time 
+
 
 opciones=Options()
 
@@ -15,17 +18,15 @@ opciones.add_argument('--incognito')
 import warnings
 warnings.filterwarnings('ignore')
 
-import pandas as pd
-
 PATH=ChromeDriverManager().install()
 
 def earnings(tickers):
     
     '''Esta función lee una lista de tickers de compañias, escrapea la página web alphaquery para cada una de esas empresas y devuelve una lista de DataFrames con datos de los earnings de cada compañía'''
 
+    lista_tablas = []
     url1="https://www.alphaquery.com/stock/"
     url2="/earnings-history"
-    lista_tablas = []
     
     for i in tickers:
         
@@ -69,8 +70,21 @@ def quitar_dolar(frame):
     
         frame["Estimated EPS"]=frame["Estimated EPS"][i].replace("$","") 
         frame["Actual EPS"]=frame["Actual EPS"][i].replace("$","") 
+
         
+def cambiar_tipo_datos(frame):
+    
+    '''Esta función cambia el tipo de datos de las tablas earnings '''
+
+    columns=frame.columns
+
+    for i in range(0,2):
+        frame[columns[i]]=pd.to_datetime(frame[columns[i]], format='%Y/%m/%d').dt.strftime('%m/%d/%Y')
         
+    for i in range(2,4):
+        frame[columns[i]]=frame[columns[i]].astype(dtype="float")
+    
+               
         
         
 def cambiar_tipo_datos2(frame):
@@ -80,7 +94,7 @@ def cambiar_tipo_datos2(frame):
     columns=frame.columns
     
     for i in range(0,1):
-        pd.to_datetime(frame[columns[i]], format='%Y-%m-%d')
+        frame[columns[i]]=pd.to_datetime(frame[columns[i]], format='%Y/%m/%d').dt.strftime('%m/%d/%Y')
   
     for i in range(1,7):
         frame[columns[i]]=frame[columns[i]].astype(dtype="float")
@@ -97,7 +111,7 @@ def col_price_change(prices_list):
     
     
 
-        for i in range(len(twitter_price.Close)):
+        for i in range(len(prices_list[j]["Close"])):
  
             if i>0:
                 prices_list[j]['Price_change'][i]=prices_list[j]['Close'][i-1]
@@ -108,10 +122,8 @@ def col_price_change(prices_list):
         
         
         
-def get_news_link(ticker,date):
-    
-    '''Esta función nos da para una acción concreta en una fecha dada, el link a la primera noticia de google'''
-    
+def get_news_link(ticker,date):   
+        
     URL="https://www.google.com/webhp?hl=es&sa=X&ved=0ahUKEwiizPmUiJb3AhWVSfEDHcGwBmgQPAgI"
     driver=webdriver.Chrome(PATH, options=opciones)
     driver.get(URL)
@@ -127,7 +139,7 @@ def get_news_link(ticker,date):
     busqueda=driver.find_element_by_xpath('/html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[2]/input')
     busqueda.click()
 
-    time.sleep(1)
+    time.sleep(2)
 
     texto=driver.find_element_by_xpath('/html/body/div[1]/div[3]/form/div[1]/div[1]/div[1]/div/div[2]/input')
     texto.send_keys(ticker)
@@ -139,7 +151,7 @@ def get_news_link(ticker,date):
 
     busqueda=driver.find_element_by_xpath('//*[@id="hdtb-msb"]/div[1]/div/div[2]/a')
     busqueda.click()
-    time.sleep(2)
+    time.sleep(1)
     #Nos metemos en herramientas
     busqueda=driver.find_element_by_xpath('//*[@id="hdtb-tls"]')
     busqueda.click()
@@ -164,12 +176,15 @@ def get_news_link(ticker,date):
 
     time.sleep(1)
 
+    
     texto=driver.find_element_by_xpath('//*[@id="OouJcb"]')
     texto.send_keys(date)
-    texto.send_keys(u'\ue007')
+    
 
+    time.sleep(1)
+    
     #Ponemos fecha de final
-    busqueda=driver.find_element_by_xpath('//*[@id="OouJcb"]')
+    busqueda=driver.find_element_by_xpath('//*[@id="rzG2be"]')
     busqueda.click()
 
     time.sleep(1)
@@ -179,12 +194,11 @@ def get_news_link(ticker,date):
     texto.send_keys(u'\ue007')
 
     time.sleep(1)
-    #Le doy a buscar
-    busqueda=driver.find_element_by_xpath('<g-button class="Ru1Ao BwGU8e fE5Rge" jsaction="hNEEAb" role="button"   tabindex="0">Buscar</g-button>')
-    busqueda.click()
-
-    time.sleep(2)
+    
+   
 
     busqueda=driver.find_element_by_css_selector("#rso > div:nth-child(1) > g-card > div > div > a")
     
-    return busqueda.get_attribute('href')
+    link=busqueda.get_attribute('href')
+
+    return link
