@@ -68,8 +68,8 @@ def quitar_dolar(frame):
     
     for i in range(len(frame["Estimated EPS"])):
     
-        frame["Estimated EPS"]=frame["Estimated EPS"][i].replace("$","") 
-        frame["Actual EPS"]=frame["Actual EPS"][i].replace("$","") 
+        frame["Estimated EPS"][i]=frame["Estimated EPS"][i].replace("$","") 
+        frame["Actual EPS"][i]=frame["Actual EPS"][i].replace("$","") 
 
         
 def cambiar_tipo_datos(frame):
